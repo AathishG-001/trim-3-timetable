@@ -2,46 +2,26 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ADMIN – MBA Trimester III Timetable</title>
+<title>ADMIN – MBA Trimester III</title>
 
 <style>
 body { font-family: Arial, sans-serif; }
-
-h2 { color:#b00000; }
-
-fieldset {
-  border:1px solid #000;
-  margin-bottom:15px;
-  padding:10px;
-}
-
-label { display:inline-block; width:120px; }
-
-button {
-  padding:6px 12px;
-  margin-right:10px;
-}
-
 .hidden { display:none; }
-
-.warning {
-  color:#b00000;
-  font-weight:bold;
-  margin-bottom:10px;
-}
+fieldset { border:1px solid #000; padding:10px; margin:15px 0; }
+label { display:inline-block; width:120px; }
+button { padding:6px 12px; margin:5px; }
+.warning { color:red; font-weight:bold; }
+pre { background:#f5f5f5; padding:10px; }
 </style>
 </head>
 
 <body>
 
 <h2>ADMIN PANEL – MBA TRIMESTER III</h2>
+<p class="warning">⚠ This page is NOT public. Download JSON and upload manually.</p>
 
-<div class="warning">
-⚠️ This page is NOT public. Changes here are NOT live until JSON is published.
-</div>
-
-<div id="login">
-  <label>Password:</label>
+<div id="loginBox">
+  Password:
   <input type="password" id="pwd">
   <button onclick="login()">Login</button>
 </div>
@@ -49,15 +29,15 @@ button {
 <div id="adminUI" class="hidden">
 
 <fieldset>
-<legend>Session Details</legend>
+<legend>Session</legend>
 
-<label>Date:</label>
+<label>Date</label>
 <input type="date" id="date"><br><br>
 
-<label>Day:</label>
+<label>Day</label>
 <input type="text" id="day" disabled><br><br>
 
-<label>Time:</label>
+<label>Time</label>
 <select id="time">
 <option>08:30-09:20</option>
 <option>09:20-10:10</option>
@@ -69,7 +49,7 @@ button {
 <option>04:20-05:10</option>
 </select><br><br>
 
-<label>Subject:</label>
+<label>Subject</label>
 <select id="subject">
 <option>HRM</option><option>ISM</option><option>POM</option>
 <option>FM</option><option>BRM</option><option>IE</option>
@@ -77,54 +57,44 @@ button {
 <option>IBA</option>
 </select><br><br>
 
-<label>Venue:</label>
+<label>Venue</label>
 <select id="venue">
-<option>LH 1</option><option>LH 2</option><option>LH 4</option>
-<option>LH 5</option><option>Computer Lab</option>
+<option>LH 1</option><option>LH 2</option>
+<option>LH 4</option><option>LH 5</option>
+<option>Computer Lab</option>
 </select>
-
 </fieldset>
 
-<button onclick="addOverride()">➕ Add / Replace Session</button>
-<button onclick="removeSession()">❌ Remove Session</button>
-
-<hr>
-
+<button onclick="addOverride()">➕ Add / Replace</button>
+<button onclick="removeOverride()">❌ Remove</button>
 <button onclick="downloadJSON()">⬇ Download timetable.json</button>
 
+<h4>Preview</h4>
 <pre id="preview"></pre>
 
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-const ADMIN_PASSWORD = "ADMIN@DoMS"; // deterrence only
+const ADMIN_PASSWORD = "ADMIN@DoMS";
 const DAY_MAP = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
 let overrides = [];
 
-/* ================= LOGIN ================= */
 function login() {
   if (pwd.value === ADMIN_PASSWORD) {
-    login.style.display = "none";
-    adminUI.classList.remove("hidden");
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("adminUI").classList.remove("hidden");
   } else {
     alert("Wrong password");
   }
 }
 
-/* ================= DATE → DAY ================= */
 date.onchange = () => {
   const d = new Date(date.value);
   day.value = DAY_MAP[d.getDay()];
 };
 
-/* ================= ADD / REMOVE ================= */
 function addOverride() {
-  overrides = overrides.filter(o =>
-    !(o.date===date.value && o.time===time.value)
-  );
-
+  overrides = overrides.filter(o => !(o.date===date.value && o.time===time.value));
   overrides.push({
     date: date.value,
     day: day.value,
@@ -133,42 +103,27 @@ function addOverride() {
     subject: subject.value,
     venue: venue.value
   });
-
-  refreshPreview();
+  refresh();
 }
 
-function removeSession() {
-  overrides = overrides.filter(o =>
-    !(o.date===date.value && o.time===time.value)
-  );
-
+function removeOverride() {
+  overrides = overrides.filter(o => !(o.date===date.value && o.time===time.value));
   overrides.push({
     date: date.value,
     day: day.value,
     time: time.value,
     action: "remove"
   });
-
-  refreshPreview();
+  refresh();
 }
 
-/* ================= PREVIEW ================= */
-function refreshPreview() {
+function refresh() {
   preview.textContent = JSON.stringify(overrides, null, 2);
 }
 
-/* ================= EXPORT ================= */
 function downloadJSON() {
-  const data = {
-    base: [],   // DO NOT MODIFY base here
-    overrides: overrides
-  };
-
-  const blob = new Blob(
-    [JSON.stringify(data, null, 2)],
-    { type: "application/json" }
-  );
-
+  const data = { overrides };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "timetable.json";
