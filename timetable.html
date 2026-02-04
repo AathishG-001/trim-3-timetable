@@ -8,66 +8,70 @@
 body { font-family: Arial, sans-serif; }
 
 .header {
-  display: grid;
-  grid-template-columns: 120px auto 120px;
-  align-items: center;
+  display:grid;
+  grid-template-columns:120px auto 120px;
+  align-items:center;
 }
-.header img { height: 80px; }
-.header-center { text-align: center; }
-
-.controls { text-align: center; margin: 12px 0; }
-
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-th, td {
-  border: 1px solid #000;
-  padding: 6px;
-  text-align: center;
-}
-
-.core { font-weight: bold; }
-.elective { font-weight: bold; color: red; }
-.override { font-weight: bold; color: blue; }
+.header img { height:80px; }
+.header-center { text-align:center; }
 
 .notice {
   text-align:center;
-  font-size:14px;
-  color:#b00000;
+  color:red;
   margin:10px 0;
 }
+
+.controls {
+  text-align:center;
+  margin:10px 0;
+}
+
+table {
+  border-collapse:collapse;
+  width:100%;
+}
+th, td {
+  border:1px solid #000;
+  padding:6px;
+  text-align:center;
+}
+
+.core { font-weight:bold; }
+.elective { font-weight:bold; color:red; }
+.substitute { font-weight:bold; color:blue; }
 </style>
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
-  <img src="../images/NITT LOGO.png">
+  <img src="/trim-3-timetable/images/nitt-logo.png">
   <div class="header-center">
     <h2>NATIONAL INSTITUTE OF TECHNOLOGY</h2>
     <h3>DEPARTMENT OF MANAGEMENT STUDIES</h3>
     <h4>MBA – TRIMESTER III</h4>
   </div>
-  <img src="../images/DoMS LOGO NITT.png">
+  <img src="/trim-3-timetable/images/doms-logo.png">
 </div>
 
 <div class="notice">
-  This timetable is for reference only. Official changes are issued by the Department.
+This timetable is for reference only. Official changes are issued by the Department.
 </div>
 
+<!-- CONTROLS -->
 <div class="controls">
 Faculty:
 <select id="facultyFilter">
   <option value="">All Faculty</option>
 </select>
 
-<label>
-  View date:
-  <input type="date" id="viewDate">
-</label>
+&nbsp;&nbsp;
+View date:
+<input type="date" id="viewDate">
 </div>
 
+<!-- TABLE -->
 <table>
 <thead>
 <tr>
@@ -83,75 +87,86 @@ Faculty:
 </tr>
 </thead>
 <tbody id="tbody"></tbody>
+</tableT>
 </table>
 
 <script>
-const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
-const times = [
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const TIMES = [
  "08:30-09:20","09:20-10:10","10:30-11:20","11:20-12:10",
  "01:30-02:20","02:20-03:10","03:30-04:20","04:20-05:10"
 ];
 
-let BASE = [];
-let OVERRIDES = [];
+const DAY_MAP = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
 viewDate.value = new Date().toISOString().slice(0,10);
-viewDate.onchange = render;
 
-fetch("../data/timetable.json")
-  .then(r => r.json())
-  .then(data => {
-    BASE = data.base;
-    OVERRIDES = data.overrides || [];
-    populateFaculty();
-    buildTable();
-    render();
-  });
+fetch("/trim-3-timetable/data/timetable.json")
+  .then(res => res.json())
+  .then(data => init(data));
 
-function populateFaculty() {
-  const set = new Set(BASE.map(c => c.faculty));
-  set.forEach(f => {
-    facultyFilter.innerHTML += `<option>${f}</option>`;
+function init(data) {
+  const base = data.base || [];
+  const overrides = data.overrides || [];
+
+  buildFacultyFilter(base);
+  buildTable();
+
+  facultyFilter.onchange = () => render(base, overrides);
+  viewDate.onchange = () => render(base, overrides);
+
+  render(base, overrides);
+}
+
+function buildFacultyFilter(base) {
+  const facultySet = new Set(base.map(b => b.faculty));
+  facultySet.forEach(f => {
+    const opt = document.createElement("option");
+    opt.textContent = f;
+    opt.value = f;
+    facultyFilter.appendChild(opt);
   });
 }
 
 function buildTable() {
-  days.forEach(d => {
+  DAYS.forEach(d => {
     let row = `<tr><td>${d}</td>`;
-    times.forEach(t => row += `<td data-day="${d}" data-time="${t}"></td>`);
+    TIMES.forEach(t => row += `<td data-day="${d}" data-time="${t}"></td>`);
     tbody.innerHTML += row + "</tr>";
   });
 }
 
-facultyFilter.onchange = render;
-
-function render() {
+function render(base, overrides) {
+  const selectedFaculty = facultyFilter.value;
   const date = viewDate.value;
-  const faculty = facultyFilter.value;
+  const dayName = DAY_MAP[new Date(date).getDay()];
 
   document.querySelectorAll("td[data-day]").forEach(cell => {
     const d = cell.dataset.day;
     const t = cell.dataset.time;
 
-    const override = OVERRIDES.find(o =>
+    cell.innerHTML = "";
+
+    if (d !== dayName) return;
+
+    const override = overrides.find(o =>
       o.date === date && o.day === d && o.time === t
     );
 
     if (override) {
-      cell.innerHTML = `<div class="override">
-        ${override.subject}<br>${override.venue || ""}
-      </div>`;
+      if (override.action === "remove") return;
+      cell.innerHTML = `<div class="substitute">${override.subject}<br>${override.venue}</div>`;
       return;
     }
 
-    const visible = BASE.filter(c =>
-      c.day === d &&
-      c.time === t &&
-      (faculty === "" || c.faculty === faculty)
+    const entries = base.filter(b =>
+      b.day === d &&
+      b.time === t &&
+      (selectedFaculty === "" || b.faculty === selectedFaculty)
     );
 
-    cell.innerHTML = visible.map(c =>
-      `<div class="${c.type==="Core"?"core":"elective"}">${c.subject}</div>`
+    cell.innerHTML = entries.map(e =>
+      `<div class="${e.type === "Core" ? "core" : "elective"}">${e.subject}</div>`
     ).join("");
   });
 }
