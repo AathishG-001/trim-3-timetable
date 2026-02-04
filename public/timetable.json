@@ -14,17 +14,15 @@
 
     { "day":"Wednesday","time":"10:30-11:20","subject":"FM","faculty":"Dr. Senthilarasu B","type":"Core" },
     { "day":"Wednesday","time":"11:20-12:10","subject":"FM","faculty":"Dr. Senthilarasu B","type":"Core" },
-    { "day":"Thursday","time":"10:30-11:20","subject":"FM","faculty":"Dr. Senthilarasu B","type":"Core" }
-  ],
+    { "day":"Thursday","time":"10:30-11:20","subject":"FM","faculty":"Dr. Senthilarasu B","type":"Core" },
 
-  "overrides": [
-    {
-      "date": "2026-02-10",
-      "day": "Tuesday",
-      "time": "10:30-11:20",
-      "action": "replace",
-      "subject": "FM",
-      "venue": "LH 2"
-    }
-  ]
+    { "day":"Thursday","time":"03:30-04:20","subject":"BRM","faculty":"Dr. Janarthanan B","type":"Core" },
+    { "day":"Thursday","time":"04:20-05:10","subject":"BRM","faculty":"Dr. Janarthanan B","type":"Core" },
+    { "day":"Friday","time":"10:30-11:20","subject":"BRM","faculty":"Dr. Janarthanan B","type":"Core" },
+
+    { "day":"Wednesday","time":"08:30-09:20","subject":"IE","faculty":"Dr. Nivethitha S","type":"Elective" },
+    { "day":"Wednesday","time":"09:20-10:10","subject":"IE","faculty":"Dr. Nivethitha S","type":"Elective" },
+    { "day":"Thursday","time":"01:30-02:20","subject":"IE","faculty":"Dr. Nivethitha S","type":"Elective" }
+  ],
+  "overrides": []
 }
