@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ADMIN – MBA Trimester III Timetable</title>
+
+<style>
+body { font-family: Arial, sans-serif; }
+
+h2 { color:#b00000; }
+
+fieldset {
+  border:1px solid #000;
+  margin-bottom:15px;
+  padding:10px;
+}
+
+label { display:inline-block; width:120px; }
+
+button {
+  padding:6px 12px;
+  margin-right:10px;
+}
+
+.hidden { display:none; }
+
+.warning {
+  color:#b00000;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>ADMIN PANEL – MBA TRIMESTER III</h2>
+
+<div class="warning">
+⚠️ This page is NOT public. Changes here are NOT live until JSON is published.
+</div>
+
+<div id="login">
+  <label>Password:</label>
+  <input type="password" id="pwd">
+  <button onclick="login()">Login</button>
+</div>
+
+<div id="adminUI" class="hidden">
+
+<fieldset>
+<legend>Session Details</legend>
+
+<label>Date:</label>
+<input type="date" id="date"><br><br>
+
+<label>Day:</label>
+<input type="text" id="day" disabled><br><br>
+
+<label>Time:</label>
+<select id="time">
+<option>08:30-09:20</option>
+<option>09:20-10:10</option>
+<option>10:30-11:20</option>
+<option>11:20-12:10</option>
+<option>01:30-02:20</option>
+<option>02:20-03:10</option>
+<option>03:30-04:20</option>
+<option>04:20-05:10</option>
+</select><br><br>
+
+<label>Subject:</label>
+<select id="subject">
+<option>HRM</option><option>ISM</option><option>POM</option>
+<option>FM</option><option>BRM</option><option>IE</option>
+<option>DM</option><option>FIS</option><option>SCM</option>
+<option>IBA</option>
+</select><br><br>
+
+<label>Venue:</label>
+<select id="venue">
+<option>LH 1</option><option>LH 2</option><option>LH 4</option>
+<option>LH 5</option><option>Computer Lab</option>
+</select>
+
+</fieldset>
+
+<button onclick="addOverride()">➕ Add / Replace Session</button>
+<button onclick="removeSession()">❌ Remove Session</button>
+
+<hr>
+
+<button onclick="downloadJSON()">⬇ Download timetable.json</button>
+
+<pre id="preview"></pre>
+
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const ADMIN_PASSWORD = "ADMIN@DoMS"; // deterrence only
+const DAY_MAP = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+let overrides = [];
+
+/* ================= LOGIN ================= */
+function login() {
+  if (pwd.value === ADMIN_PASSWORD) {
+    login.style.display = "none";
+    adminUI.classList.remove("hidden");
+  } else {
+    alert("Wrong password");
+  }
+}
+
+/* ================= DATE → DAY ================= */
+date.onchange = () => {
+  const d = new Date(date.value);
+  day.value = DAY_MAP[d.getDay()];
+};
+
+/* ================= ADD / REMOVE ================= */
+function addOverride() {
+  overrides = overrides.filter(o =>
+    !(o.date===date.value && o.time===time.value)
+  );
+
+  overrides.push({
+    date: date.value,
+    day: day.value,
+    time: time.value,
+    action: "replace",
+    subject: subject.value,
+    venue: venue.value
+  });
+
+  refreshPreview();
+}
+
+function removeSession() {
+  overrides = overrides.filter(o =>
+    !(o.date===date.value && o.time===time.value)
+  );
+
+  overrides.push({
+    date: date.value,
+    day: day.value,
+    time: time.value,
+    action: "remove"
+  });
+
+  refreshPreview();
+}
+
+/* ================= PREVIEW ================= */
+function refreshPreview() {
+  preview.textContent = JSON.stringify(overrides, null, 2);
+}
+
+/* ================= EXPORT ================= */
+function downloadJSON() {
+  const data = {
+    base: [],   // DO NOT MODIFY base here
+    overrides: overrides
+  };
+
+  const blob = new Blob(
+    [JSON.stringify(data, null, 2)],
+    { type: "application/json" }
+  );
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "timetable.json";
+  a.click();
+}
+</script>
+
+</body>
+</html>
