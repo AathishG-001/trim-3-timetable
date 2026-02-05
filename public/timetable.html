@@ -6,67 +6,37 @@
 
 <style>
 body { font-family: Arial, sans-serif; }
+.header { display:grid; grid-template-columns:120px auto 120px; align-items:center; }
+.header img { height:80px; }
+.header-center { text-align:center; }
 
-.header {
-  display: grid;
-  grid-template-columns: 120px auto 120px;
-  align-items: center;
-}
-.header img { height: 80px; }
-.header-center { text-align: center; }
-
-.controls { text-align: center; margin: 12px 0; }
-
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-th, td {
-  border: 1px solid #000;
-  padding: 6px;
-  text-align: center;
+.instructions {
+  border:1px solid #000;
+  padding:10px;
+  margin:10px;
+  background:#f9f9f9;
 }
 
-.core { font-weight: bold; }
-.elective { font-weight: bold; color: red; }
-.override { font-weight: bold; color: blue; }
+table { border-collapse:collapse; width:100%; }
+th, td { border:1px solid #000; padding:6px; text-align:center; }
 
-.notice {
-  text-align:center;
-  font-size:14px;
-  color:#b00000;
-  margin:10px 0;
-}
+.core { font-weight:bold; }
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <img src="../images/NITT LOGO.png">
+  <img src="/trim-3-timetable/images/nitt-logo.png">
   <div class="header-center">
     <h2>NATIONAL INSTITUTE OF TECHNOLOGY</h2>
     <h3>DEPARTMENT OF MANAGEMENT STUDIES</h3>
     <h4>MBA – TRIMESTER III</h4>
   </div>
-  <img src="../images/DoMS LOGO NITT.png">
+  <img src="/trim-3-timetable/images/doms-logo.png">
 </div>
 
-<div class="notice">
-  This timetable is for reference only. Official changes are issued by the Department.
-</div>
-
-<div class="controls">
-Faculty:
-<select id="facultyFilter">
-  <option value="">All Faculty</option>
-</select>
-
-<label>
-  View date:
-  <input type="date" id="viewDate">
-</label>
-</div>
+<div id="instructions" class="instructions"></div>
 
 <table>
 <thead>
@@ -86,73 +56,31 @@ Faculty:
 </table>
 
 <script>
-const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
-const times = [
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const TIMES = [
  "08:30-09:20","09:20-10:10","10:30-11:20","11:20-12:10",
  "01:30-02:20","02:20-03:10","03:30-04:20","04:20-05:10"
 ];
 
-let BASE = [];
-let OVERRIDES = [];
-
-viewDate.value = new Date().toISOString().slice(0,10);
-viewDate.onchange = render;
-
-fetch("../data/timetable.json")
+fetch("/trim-3-timetable/data/timetable.json")
   .then(r => r.json())
-  .then(data => {
-    BASE = data.base;
-    OVERRIDES = data.overrides || [];
-    populateFaculty();
-    buildTable();
-    render();
-  });
+  .then(data => init(data));
 
-function populateFaculty() {
-  const set = new Set(BASE.map(c => c.faculty));
-  set.forEach(f => {
-    facultyFilter.innerHTML += `<option>${f}</option>`;
-  });
-}
+function init(data) {
+  const tbody = document.getElementById("tbody");
 
-function buildTable() {
-  days.forEach(d => {
+  document.getElementById("instructions").innerHTML =
+    "<b>Instructions:</b><ul>" +
+    data.instructions.map(i => `<li>${i}</li>`).join("") +
+    "</ul>";
+
+  DAYS.forEach(d => {
     let row = `<tr><td>${d}</td>`;
-    times.forEach(t => row += `<td data-day="${d}" data-time="${t}"></td>`);
+    TIMES.forEach(t => {
+      const cls = data.base.find(b => b.day===d && b.time===t);
+      row += `<td>${cls ? `<div class="core">${cls.subject}</div>` : ""}</td>`;
+    });
     tbody.innerHTML += row + "</tr>";
-  });
-}
-
-facultyFilter.onchange = render;
-
-function render() {
-  const date = viewDate.value;
-  const faculty = facultyFilter.value;
-
-  document.querySelectorAll("td[data-day]").forEach(cell => {
-    const d = cell.dataset.day;
-    const t = cell.dataset.time;
-
-    const override = OVERRIDES.find(o =>
-      o.date === date && o.day === d && o.time === t
-    );
-
-    if (override) {
-      cell.innerHTML = `<div class="override">
-        ${override.subject}<br>${override.venue || ""}
-      </div>`;
-      return;
-    }
-
-    const visible = BASE.filter(c =>
-      c.day === d &&
-      c.time === t &&
-      (faculty === "" || c.faculty === faculty)
-    );
-
-    cell.innerHTML = visible.map(c =>
-      `<div class="${c.type==="Core"?"core":"elective"}">${c.subject}</div>`
-    ).join("");
   });
 }
 </script>
