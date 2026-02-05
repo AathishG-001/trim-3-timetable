@@ -22,9 +22,7 @@
     { "day":"Wednesday","time":"11:20-12:10","subject":"FM","faculty":"Dr. Senthil Arasu B","type":"Core" },
     { "day":"Thursday","time":"10:30-11:20","subject":"FM","faculty":"Dr. Senthil Arasu B","type":"Core" },
 
-    { "day":"Friday","time":"09:20-10:10","subject":"IBA","faculty":"Mr. Sethuraman R","type":"Elective" },
-{ "day":"Friday","time":"10:30-11:20","subject":"BRM","faculty":"Dr. Janarthanan B","type":"Core" },
-{ "day":"Friday","time":"11:20-12:10","subject":"DM","faculty":"Dr. Janarthanan B","type":"Elective" }
+    { "day":"Friday","time":"10:30-11:20","subject":"BRM","faculty":"Dr. Janarthanan B","type":"Core" },
 
   ],
 
